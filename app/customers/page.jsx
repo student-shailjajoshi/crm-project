@@ -1,5 +1,6 @@
 'use client'
 import { useState } from 'react'
+import CustomerCard from '../components/CustomerCard'
 
 const initialCustomers = [
   { id: 1, name: "Priya Sharma", email: "priya@gmail.com", phone: "9876543210", status: "New" },
@@ -15,14 +16,10 @@ const statusFlow = {
   "Closed": "New"
 }
 
-const statusColor = {
-  "New": "bg-emerald-100 text-emerald-700",
-  "Follow-up": "bg-amber-100 text-amber-700",
-  "Closed": "bg-rose-100 text-rose-700",
-}
-
 export default function Customers() {
   const [customers, setCustomers] = useState(initialCustomers)
+  const [form, setForm] = useState({ name: '', email: '', phone: '', status: 'New' })
+  const [showForm, setShowForm] = useState(false)
 
   const changeStatus = (id) => {
     setCustomers(customers.map(c =>
@@ -30,43 +27,71 @@ export default function Customers() {
     ))
   }
 
+  const deleteCustomer = (id) => {
+    setCustomers(customers.filter(c => c.id !== id))
+  }
+
+  const addCustomer = () => {
+    if (!form.name || !form.email || !form.phone) {
+      alert("Sab fields bharo!")
+      return
+    }
+    setCustomers([...customers, { ...form, id: Date.now() }])
+    setForm({ name: '', email: '', phone: '', status: 'New' })
+    setShowForm(false)
+  }
+
   return (
     <div className="p-8">
-      <h1 className="text-2xl font-bold mb-6">Customers</h1>
-      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50">
-            <tr className="text-gray-400">
-              <th className="text-left px-6 py-4">Name</th>
-              <th className="text-left px-6 py-4">Email</th>
-              <th className="text-left px-6 py-4">Phone</th>
-              <th className="text-left px-6 py-4">Status</th>
-              <th className="text-left px-6 py-4">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {customers.map(c => (
-              <tr key={c.id} className="border-t border-gray-100">
-                <td className="px-6 py-4 font-semibold">{c.name}</td>
-                <td className="px-6 py-4 text-gray-400">{c.email}</td>
-                <td className="px-6 py-4 text-gray-400">{c.phone}</td>
-                <td className="px-6 py-4">
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${statusColor[c.status]}`}>
-                    {c.status}
-                  </span>
-                </td>
-                <td className="px-6 py-4">
-                  <button
-                    onClick={() => changeStatus(c.id)}
-                    className="bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded-lg text-xs font-medium"
-                  >
-                    Change Status →
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold">Customers</h1>
+        <button
+          onClick={() => setShowForm(!showForm)}
+          className="bg-emerald-500 text-white px-5 py-2 rounded-xl text-sm font-semibold hover:bg-emerald-600"
+        >
+          + Add Customer
+        </button>
+      </div>
+
+      {showForm && (
+        <div className="bg-white rounded-2xl shadow p-6 mb-6">
+          <h2 className="font-bold mb-4">New Customer</h2>
+          <input
+            className="w-full border rounded-xl px-4 py-3 text-sm mb-3 outline-none"
+            placeholder="Name"
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+          />
+          <input
+            className="w-full border rounded-xl px-4 py-3 text-sm mb-3 outline-none"
+            placeholder="Email"
+            value={form.email}
+            onChange={(e) => setForm({ ...form, email: e.target.value })}
+          />
+          <input
+            className="w-full border rounded-xl px-4 py-3 text-sm mb-4 outline-none"
+            placeholder="Phone"
+            value={form.phone}
+            onChange={(e) => setForm({ ...form, phone: e.target.value })}
+          />
+          <button
+            onClick={addCustomer}
+            className="bg-emerald-500 text-white px-6 py-2 rounded-xl text-sm font-semibold"
+          >
+            Add
+          </button>
+        </div>
+      )}
+
+      <div className="grid grid-cols-3 gap-4">
+        {customers.map(c => (
+          <CustomerCard
+            key={c.id}
+            {...c}
+            onStatusChange={() => changeStatus(c.id)}
+            onDelete={() => deleteCustomer(c.id)}
+          />
+        ))}
       </div>
     </div>
   )
